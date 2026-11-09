@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IG連結記錄器</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#d6336c">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#faf7f5;--card:#fff;--ink:#2b2321;--sub:#7a6d69;--line:#ece4e0;
+  --accent:#d6336c;--accent2:#f08c00;--soft:#fdeef3;--ok:#2f9e44;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;font-size:16px;line-height:1.5}
+header{position:sticky;top:0;z-index:5;background:linear-gradient(120deg,#d6336c,#f08c00);color:#fff;padding:14px 16px 10px}
+header h1{margin:0;font-size:20px;letter-spacing:.5px}
+header .stat{font-size:13px;opacity:.9}
+.tabs{display:flex;gap:6px;margin-top:10px}
+.tabs button{flex:1;border:0;border-radius:999px;padding:8px 0;font-size:14px;background:rgba(255,255,255,.22);color:#fff;font-weight:600}
+.tabs button.on{background:#fff;color:var(--accent)}
+main{max-width:640px;margin:0 auto;padding:14px 14px 90px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:14px}
+label{display:block;font-size:13px;color:var(--sub);margin:10px 0 4px}
+input,select,textarea{width:100%;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font-family:inherit}
+textarea{min-height:64px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--soft);border-color:var(--accent)}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font-size:14px;color:var(--ink)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn{border:0;border-radius:12px;padding:12px 16px;font-size:16px;font-weight:700;background:var(--accent);color:#fff;width:100%;margin-top:14px}
+.btn.ghost{background:#fff;color:var(--accent);border:1px solid var(--accent)}
+.btn.small{width:auto;padding:6px 12px;font-size:13px;margin:0;border-radius:8px}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{flex:1;border:0;background:#fff;padding:9px;font-size:15px;color:var(--sub)}
+.seg button.on{background:var(--soft);color:var(--accent);font-weight:700}
+.hint{font-size:12px;color:var(--sub);margin-top:4px}
+.urlinfo{font-size:13px;margin-top:6px;color:var(--ok)}
+.urlinfo.bad{color:#c92a2a}
+.toolbar{display:flex;gap:8px;margin-bottom:10px}
+.toolbar input{flex:1}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.card .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tag{font-size:12px;padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--accent);font-weight:600;white-space:nowrap}
+.tag.kind{background:#f1f3f5;color:#495057}
+.tag.loc{background:#fff4e6;color:#d9480f}
+.card h3{margin:6px 0 2px;font-size:16px;word-break:break-word}
+.card .note{font-size:14px;color:var(--sub);white-space:pre-wrap;word-break:break-word}
+.card .meta{font-size:12px;color:#aaa;margin-top:4px}
+.card .acts{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.card .acts a,.card .acts button{font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--ink);text-decoration:none}
+.card .acts a.open{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.group h2{font-size:15px;margin:18px 2px 8px;display:flex;align-items:center;gap:6px}
+.group h2 .n{font-size:12px;color:var(--sub);font-weight:400}
+details.region{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:8px;padding:0 12px}
+details.region summary{padding:11px 0;font-weight:600;list-style:none;display:flex;justify-content:space-between}
+details.region summary::-webkit-details-marker{display:none}
+details.region[open]{padding-bottom:6px}
+details.region .card{border-color:#f3ece9}
+.empty{text-align:center;color:var(--sub);padding:30px 10px;font-size:14px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:flex-end;justify-content:center;z-index:20}
+.modal.show{display:flex}
+.modal .box{background:#fff;width:100%;max-width:640px;border-radius:18px 18px 0 0;padding:18px;max-height:88vh;overflow:auto}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2b2321;color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;transition:.25s;pointer-events:none;z-index:30}
+.toast.show{opacity:1}
+.syncnote{font-size:12px;color:var(--sub);text-align:center;margin-top:6px}
+.steps{font-size:14px;color:var(--ink);padding-left:20px;margin:6px 0}
+.steps li{margin-bottom:4px}
+body.quick .tabs,body.quick #cancelEdit{display:none}
+body.quick header h1::after{content:"　快速收藏";font-size:14px;font-weight:400;opacity:.9}
+#doneBox{display:none;text-align:center;padding:40px 10px}
+#doneBox .big{font-size:48px}
+#installBtn{display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>📌 IG連結記錄器</h1>
+  <div class="stat" id="stat">載入中…</div>
+  <div class="tabs">
+    <button data-tab="add" class="on">＋ 新增</button>
+    <button data-tab="list">清單</button>
+    <button data-tab="map">地區整理</button>
+    <button data-tab="more">更多</button>
+  </div>
+</header>
+
+<main>
+<!-- 新增 -->
+<section id="tab-add">
+  <div class="panel">
+    <label>IG 連結（在 IG 按「分享 → 複製連結」，再長按這裡貼上）</label>
+    <input id="f-url" type="url" inputmode="url" placeholder="https://www.instagram.com/reel/..." autocomplete="off">
+    <div class="urlinfo" id="urlinfo"></div>
+
+    <label>標題 / 重點（例：阿里山日出步道、台中隱藏版拉麵）</label>
+    <input id="f-title" placeholder="簡短寫下這篇在講什麼">
+
+    <label>分類</label>
+    <div class="chips" id="f-cats"></div>
+
+    <div id="locbox">
+      <label>地點</label>
+      <div class="seg" id="f-area">
+        <button data-v="tw" class="on">🇹🇼 台灣</button>
+        <button data-v="intl">🌏 國外</button>
+      </div>
+      <div id="tw-fields">
+        <label>縣市</label>
+        <select id="f-city"></select>
+      </div>
+      <div id="intl-fields" style="display:none">
+        <label>國家</label>
+        <input id="f-country" list="countries" placeholder="例：日本">
+        <datalist id="countries"></datalist>
+        <label>城市（選填）</label>
+        <input id="f-intlcity" placeholder="例：京都">
+      </div>
+      <label>鄉鎮 / 店名 / 景點名（選填）</label>
+      <input id="f-spot" placeholder="例：九份老街">
+    </div>
+
+    <label>備註（選填）</label>
+    <textarea id="f-note" placeholder="營業時間、價位、想跟誰去…"></textarea>
+
+    <button class="btn" id="saveBtn">儲存</button>
+    <button class="btn ghost" id="cancelEdit" style="display:none">取消編輯</button>
+  </div>
+</section>
+
+<section id="doneBox">
+  <div class="big">✅</div>
+  <h2 style="margin:8px 0">已收藏！</h2>
+  <div class="hint" id="doneInfo"></div>
+  <button class="btn" id="doneClose">完成，回到 IG</button>
+  <button class="btn ghost" id="doneList">查看我的收藏</button>
+</section>
+
+<!-- 清單 -->
+<section id="tab-list" style="display:none">
+  <div class="toolbar"><input id="q" placeholder="🔍 搜尋標題、地點、備註"></div>
+  <div class="chips" id="filterCats" style="margin-bottom:12px"></div>
+  <div id="listBox"></div>
+</section>
+
+<!-- 地區整理 -->
+<section id="tab-map" style="display:none">
+  <div class="chips" id="mapCats" style="margin-bottom:6px"></div>
+  <div id="mapBox"></div>
+</section>
+
+<!-- 更多 -->
+<section id="tab-more" style="display:none">
+  <div class="panel">
+    <b>📱 從 IG 直接分享</b>
+    <button class="btn" id="installBtn">安裝到手機（加入分享選單）</button>
+    <ol class="steps">
+      <li>用 Android 的 Chrome 打開這個網頁，按上方「安裝」按鈕，或右上角 ⋮ →「安裝應用程式」。</li>
+      <li>在 IG 貼文按「分享」(紙飛機) → 往右滑到最後點「分享到…/更多」→ 選「IG記錄器」。</li>
+      <li>跳出小頁面，選分類、縣市後按儲存，再按「完成」就回到 IG。</li>
+    </ol>
+    <div class="hint">第一次分享後，Android 通常會把 IG記錄器 排到分享選單前面。</div>
+  </div>
+  <div class="panel">
+    <b>🏷️ 管理分類</b>
+    <div class="hint">打勾「需要地點」的分類會出現縣市 / 國家欄位。</div>
+    <div id="catManage" style="margin-top:8px"></div>
+    <div class="row" style="margin-top:8px">
+      <input id="newCat" placeholder="新分類名稱（可加 emoji）">
+      <button class="btn small" id="addCat" style="flex:0 0 auto">新增</button>
+    </div>
+  </div>
+  <div class="panel">
+    <b>💾 備份與匯入</b>
+    <div class="hint">資料存在這支手機的瀏覽器裡，建議偶爾下載備份。換手機時，在新手機選「從檔案匯入」即可。</div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn small" id="dlBackup">下載備份檔</button>
+      <label class="btn small ghost" style="text-align:center;cursor:pointer">從檔案匯入<input type="file" id="importFile" accept=".json,application/json" style="display:none"></label>
+    </div>
+    <div class="hint" style="margin-top:10px">或用文字：複製下方內容存起來，還原時貼回來按「匯入」。</div>
+    <textarea id="backup" style="min-height:120px;margin-top:8px;font-size:12px"></textarea>
+    <div class="row" style="margin-top:8px">
+      <button class="btn small" id="makeBackup">產生備份</button>
+      <button class="btn small" id="copyBackup">複製</button>
+      <button class="btn small ghost" id="doImport">匯入</button>
+    </div>
+  </div>
+  <div class="syncnote" id="syncnote"></div>
+</section>
+</main>
+
+<div class="modal" id="confirmModal"><div class="box">
+  <div id="confirmText" style="font-size:16px;margin-bottom:6px"></div>
+  <div class="row"><button class="btn ghost" id="cNo">取消</button><button class="btn" id="cYes">確定刪除</button></div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const CITIES=["基隆市","台北市","新北市","桃園市","新竹市","新竹縣","苗栗縣","台中市","彰化縣","南投縣","雲林縣","嘉義市","嘉義縣","台南市","高雄市","屏東縣","宜蘭縣","花蓮縣","台東縣","澎湖縣","金門縣","連江縣"];
+const COUNTRIES=["日本","韓國","泰國","越南","新加坡","馬來西亞","印尼","菲律賓","香港","澳門","中國","美國","加拿大","澳洲","紐西蘭","英國","法國","義大利","西班牙","德國","瑞士","土耳其","杜拜","其他"];
+const DEFAULT_CATS=[
+  {name:"🏞️ 遊玩景點",loc:true},{name:"🍜 美食",loc:true},{name:"🏨 住宿",loc:true},
+  {name:"👗 穿搭",loc:false},{name:"📚 知識學習",loc:false},{name:"🛒 生活好物",loc:false},
+  {name:"😂 搞笑娛樂",loc:false},{name:"📁 其他",loc:false}
+];
+const LS_KEY="igsaver.v1";
+
+let items=[], cats=DEFAULT_CATS.slice();
+let quick=false;
+let editingId=null, curCat=DEFAULT_CATS[0].name, curArea="tw";
+let filterCat="全部", mapCat="全部";
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("show"),1800)}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+
+/* ---------- URL 解析 ---------- */
+function parseIG(raw){
+  const m=String(raw||"").match(/https?:\/\/[^\s]+/);
+  if(!m) return null;
+  let u; try{u=new URL(m[0])}catch(e){return null}
+  if(!/(^|\.)instagram\.com$|(^|\.)instagr\.am$/.test(u.hostname)) return {url:m[0],kind:"其他網站",ig:false};
+  const p=u.pathname.split("/").filter(Boolean);
+  let kind="IG", clean="https://www.instagram.com/"+p.join("/")+(p.length?"/":"");
+  if(p.includes("reel")||p.includes("reels")) kind="Reels";
+  else if(p.includes("p")) kind="貼文";
+  else if(p[0]==="stories") kind="限動";
+  else if(p.length===1) kind="帳號 @"+p[0];
+  return {url:clean,kind,ig:true};
+}
+
+/* ---------- 儲存層 ---------- */
+function saveLocal(){try{localStorage.setItem(LS_KEY,JSON.stringify({items,cats}))}catch(e){}}
+function loadLocal(){try{const d=JSON.parse(localStorage.getItem(LS_KEY)||"null");if(d){items=d.items||[];if(d.cats&&d.cats.length)cats=d.cats}}catch(e){}}
+
+async function putItem(it){ const i=items.findIndex(x=>x.id===it.id); if(i>=0)items[i]=it; else items.push(it); saveLocal(); render(); }
+async function delItem(id){ items=items.filter(x=>x.id!==id); saveLocal(); render(); }
+async function saveCats(){ saveLocal(); renderCats(); render(); }
+
+/* ---------- 表單 ---------- */
+function catObj(n){return cats.find(c=>c.name===n)||{name:n,loc:false}}
+function renderCats(){
+  if(!cats.find(c=>c.name===curCat)) curCat=cats[0]?.name||"";
+  $("#f-cats").innerHTML=cats.map(c=>`<button class="chip ${c.name===curCat?"on":""}" data-c="${esc(c.name)}">${esc(c.name)}</button>`).join("");
+  $("#locbox").style.display=catObj(curCat).loc?"":"none";
+  const fc=["全部",...cats.map(c=>c.name)];
+  $("#filterCats").innerHTML=fc.map(n=>`<button class="chip ${n===filterCat?"on":""}" data-c="${esc(n)}">${esc(n)}</button>`).join("");
+  const mc=["全部",...cats.filter(c=>c.loc).map(c=>c.name)];
+  if(!mc.includes(mapCat)) mapCat="全部";
+  $("#mapCats").innerHTML=mc.map(n=>`<button class="chip ${n===mapCat?"on":""}" data-c="${esc(n)}">${esc(n)}</button>`).join("");
+  $("#catManage").innerHTML=cats.map((c,i)=>`
+    <div class="row" style="align-items:center;margin-bottom:6px">
+      <span style="flex:1">${esc(c.name)}</span>
+      <label style="flex:0 0 auto;margin:0;font-size:13px;display:flex;gap:4px;align-items:center"><input type="checkbox" data-loc="${i}" ${c.loc?"checked":""} style="width:auto">需要地點</label>
+      <button class="btn small ghost" data-delcat="${i}" style="flex:0 0 auto">刪除</button>
+    </div>`).join("");
+}
+function setArea(a){curArea=a;document.querySelectorAll("#f-area button").forEach(b=>b.classList.toggle("on",b.dataset.v===a));$("#tw-fields").style.display=a==="tw"?"":"none";$("#intl-fields").style.display=a==="intl"?"":"none"}
+
+$("#f-city").innerHTML=`<option value="">— 請選擇 —</option>`+CITIES.map(c=>`<option>${c}</option>`).join("");
+$("#countries").innerHTML=COUNTRIES.map(c=>`<option value="${c}">`).join("");
+
+$("#f-url").addEventListener("input",e=>{
+  const r=parseIG(e.target.value), info=$("#urlinfo");
+  if(!e.target.value.trim()){info.textContent="";return}
+  if(!r){info.textContent="看起來不是網址";info.className="urlinfo bad";return}
+  const dup=items.find(x=>x.url===r.url&&x.id!==editingId);
+  info.className="urlinfo"+(dup?" bad":"");
+  info.textContent=dup?`⚠️ 這則已經存過了：「${dup.title||"未命名"}」`:`✓ 偵測到：${r.kind}`;
+});
+$("#f-cats").addEventListener("click",e=>{const b=e.target.closest("[data-c]");if(!b)return;curCat=b.dataset.c;renderCats()});
+$("#f-area").addEventListener("click",e=>{const b=e.target.closest("[data-v]");if(b)setArea(b.dataset.v)});
+
+function resetForm(){
+  editingId=null;["#f-url","#f-title","#f-country","#f-intlcity","#f-spot","#f-note"].forEach(s=>$(s).value="");
+  $("#f-city").value="";$("#urlinfo").textContent="";setArea("tw");
+  $("#saveBtn").textContent="儲存";$("#cancelEdit").style.display="none";
+}
+$("#cancelEdit").onclick=()=>{resetForm();showTab("list")};
+
+$("#saveBtn").onclick=async()=>{
+  const r=parseIG($("#f-url").value);
+  if(!r){toast("請先貼上連結");$("#f-url").focus();return}
+  const c=catObj(curCat);
+  const it={
+    id:editingId||uid(), url:r.url, kind:r.kind,
+    title:$("#f-title").value.trim(), note:$("#f-note").value.trim(),
+    cat:curCat, area:c.loc?curArea:"", city:"", country:"", intlcity:"", spot:"",
+    created:editingId?(items.find(x=>x.id===editingId)?.created||Date.now()):Date.now()
+  };
+  if(c.loc){
+    it.spot=$("#f-spot").value.trim();
+    if(curArea==="tw") it.city=$("#f-city").value;
+    else { it.country=$("#f-country").value.trim(); it.intlcity=$("#f-intlcity").value.trim(); }
+  }
+  try{
+    const wasEdit=!!editingId; await putItem(it); resetForm();
+    if(quick){ $("#tab-add").style.display="none"; $("#doneInfo").textContent=`${it.cat}${locText(it)?"・📍"+locText(it):""}`; $("#doneBox").style.display="block"; }
+    else toast(wasEdit?"已更新":"已儲存 ✓");
+  }catch(e){ toast("儲存失敗：手機空間可能不足"); }
+};
+
+/* ---------- 顯示 ---------- */
+function locText(it){
+  if(!it.area) return "";
+  if(it.area==="tw") return [it.city,it.spot].filter(Boolean).join("・")||"台灣（未填縣市）";
+  return [it.country,it.intlcity,it.spot].filter(Boolean).join("・")||"國外（未填國家）";
+}
+function cardHTML(it){
+  const loc=locText(it);
+  const d=new Date(it.created||0);
+  return `<div class="card">
+    <div class="top"><span class="tag">${esc(it.cat)}</span>${loc?`<span class="tag loc">📍 ${esc(loc)}</span>`:""}<span class="tag kind">${esc(it.kind||"IG")}</span></div>
+    <h3>${esc(it.title||"（未命名）")}</h3>
+    ${it.note?`<div class="note">${esc(it.note)}</div>`:""}
+    <div class="meta">${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} 收藏</div>
+    <div class="acts">
+      <a class="open" href="${esc(it.url)}" target="_blank" rel="noopener">開啟 IG ↗</a>
+      <button data-copy="${esc(it.id)}">複製連結</button>
+      <button data-edit="${esc(it.id)}">編輯</button>
+      <button data-del="${esc(it.id)}">刪除</button>
+    </div></div>`;
+}
+function render(){
+  const tw=items.filter(x=>x.area==="tw").length, intl=items.filter(x=>x.area==="intl").length;
+  $("#stat").textContent=`共 ${items.length} 則・台灣 ${tw}・國外 ${intl}`;
+  const q=$("#q").value.trim().toLowerCase();
+  let list=items.slice().sort((a,b)=>(b.created||0)-(a.created||0));
+  if(filterCat!=="全部") list=list.filter(x=>x.cat===filterCat);
+  if(q) list=list.filter(x=>[x.title,x.note,x.cat,locText(x),x.url].join(" ").toLowerCase().includes(q));
+  $("#listBox").innerHTML=list.length?list.map(cardHTML).join(""):`<div class="empty">${items.length?"沒有符合的結果":"還沒有收藏，先到「＋ 新增」貼上第一個 IG 連結吧！"}</div>`;
+
+  let ml=items.filter(x=>x.area);
+  if(mapCat!=="全部") ml=ml.filter(x=>x.cat===mapCat);
+  const groupBy=(arr,key)=>{const g={};arr.forEach(x=>{const k=key(x);(g[k]=g[k]||[]).push(x)});return g};
+  const block=(title,g,order)=>{
+    const keys=Object.keys(g).sort((a,b)=>{const ia=order.indexOf(a),ib=order.indexOf(b);return (ia<0?999:ia)-(ib<0?999:ib)||a.localeCompare(b,"zh-Hant")});
+    if(!keys.length) return "";
+    return `<div class="group"><h2>${title}<span class="n">${keys.length} 個地區</span></h2>`+
+      keys.map(k=>`<details class="region"><summary><span>${esc(k)}</span><span class="n" style="color:var(--sub);font-weight:400">${g[k].length} 則 ›</span></summary>${g[k].sort((a,b)=>(b.created||0)-(a.created||0)).map(cardHTML).join("")}</details>`).join("")+`</div>`;
+  };
+  const html=block("🇹🇼 台灣（依縣市）",groupBy(ml.filter(x=>x.area==="tw"),x=>x.city||"未填縣市"),CITIES)+
+             block("🌏 國外（依國家）",groupBy(ml.filter(x=>x.area==="intl"),x=>x.country||"未填國家"),COUNTRIES);
+  $("#mapBox").innerHTML=html||`<div class="empty">還沒有帶地點的收藏。<br>新增時選「遊玩景點／美食／住宿」並填縣市或國家，就會整理在這裡。</div>`;
+}
+
+/* ---------- 互動 ---------- */
+function showTab(t){
+  if(quick){quick=false;document.body.classList.remove("quick");$("#doneBox").style.display="none"}
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));
+  ["add","list","map","more"].forEach(n=>$("#tab-"+n).style.display=n===t?"":"none");
+  window.scrollTo(0,0);
+}
+$(".tabs").addEventListener("click",e=>{const b=e.target.closest("[data-tab]");if(b)showTab(b.dataset.tab)});
+$("#q").addEventListener("input",render);
+$("#filterCats").addEventListener("click",e=>{const b=e.target.closest("[data-c]");if(!b)return;filterCat=b.dataset.c;renderCats();render()});
+$("#mapCats").addEventListener("click",e=>{const b=e.target.closest("[data-c]");if(!b)return;mapCat=b.dataset.c;renderCats();render()});
+
+let pendingDel=null;
+document.addEventListener("click",async e=>{
+  const c=e.target.closest("[data-copy]"),ed=e.target.closest("[data-edit]"),dl=e.target.closest("[data-del]");
+  if(c){const it=items.find(x=>x.id===c.dataset.copy);try{await navigator.clipboard.writeText(it.url);toast("已複製連結")}catch(err){toast("無法複製，請長按「開啟」連結")}}
+  if(ed){
+    const it=items.find(x=>x.id===ed.dataset.edit);if(!it)return;
+    editingId=it.id;$("#f-url").value=it.url;$("#f-title").value=it.title||"";$("#f-note").value=it.note||"";
+    curCat=it.cat;renderCats();setArea(it.area||"tw");$("#f-city").value=it.city||"";
+    $("#f-country").value=it.country||"";$("#f-intlcity").value=it.intlcity||"";$("#f-spot").value=it.spot||"";
+    $("#saveBtn").textContent="更新";$("#cancelEdit").style.display="";$("#urlinfo").textContent="";showTab("add");
+  }
+  if(dl){const it=items.find(x=>x.id===dl.dataset.del);pendingDel=it.id;$("#confirmText").textContent=`刪除「${it.title||"未命名"}」？`;$("#confirmModal").classList.add("show")}
+});
+$("#cNo").onclick=()=>{$("#confirmModal").classList.remove("show");pendingDel=null};
+$("#cYes").onclick=async()=>{$("#confirmModal").classList.remove("show");if(pendingDel){try{await delItem(pendingDel);toast("已刪除")}catch(e){toast("刪除失敗")}}pendingDel=null};
+
+$("#addCat").onclick=()=>{const n=$("#newCat").value.trim();if(!n)return;if(cats.find(c=>c.name===n)){toast("已有這個分類");return}cats.push({name:n,loc:false});$("#newCat").value="";saveCats()};
+$("#catManage").addEventListener("change",e=>{const i=e.target.dataset.loc;if(i==null)return;cats[i]={...cats[i],loc:e.target.checked};saveCats()});
+$("#catManage").addEventListener("click",e=>{const i=e.target.dataset.delcat;if(i==null)return;if(cats.length<=1){toast("至少保留一個分類");return}
+  const n=cats[i].name;if(items.some(x=>x.cat===n)){toast("此分類還有收藏，請先移到其他分類");return}cats.splice(i,1);saveCats()});
+
+$("#makeBackup").onclick=()=>{$("#backup").value=JSON.stringify({app:"igsaver",items,cats})};
+$("#copyBackup").onclick=async()=>{if(!$("#backup").value)$("#makeBackup").click();try{await navigator.clipboard.writeText($("#backup").value);toast("備份已複製")}catch(e){$("#backup").select();toast("請手動全選複製")}};
+$("#doImport").onclick=async()=>{
+  let d;try{d=JSON.parse($("#backup").value)}catch(e){toast("格式不正確");return}
+  if(!d||!Array.isArray(d.items)){toast("格式不正確");return}
+  if(Array.isArray(d.cats)) d.cats.forEach(c=>{if(c&&c.name&&!cats.find(x=>x.name===c.name))cats.push({name:c.name,loc:!!c.loc})});
+  let n=0;
+  for(const it of d.items){ if(!it||!it.url) continue; if(items.find(x=>x.url===it.url)) continue; await putItem({...it,id:it.id||uid()}); n++; }
+  await saveCats(); toast(`匯入 ${n} 則`);
+};
+
+/* ---------- 備份檔 ---------- */
+$("#dlBackup").onclick=()=>{
+  const blob=new Blob([JSON.stringify({app:"igsaver",items,cats},null,1)],{type:"application/json"});
+  const d=new Date(),a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download=`IG收藏備份_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}.json`;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+};
+$("#importFile").onchange=async e=>{const f=e.target.files[0];if(!f)return;$("#backup").value=await f.text();e.target.value="";$("#doImport").click()};
+
+/* ---------- 安裝 ---------- */
+let deferredPrompt=null;
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;$("#installBtn").style.display="block"});
+$("#installBtn").onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$("#installBtn").style.display="none"};
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+
+/* ---------- 從 IG 分享進來 ---------- */
+function handleShare(){
+  const p=new URLSearchParams(location.search);
+  const raw=[p.get("url"),p.get("text"),p.get("title")].filter(Boolean).join(" ");
+  if(!raw) return false;
+  history.replaceState(null,"",location.pathname);
+  quick=true; document.body.classList.add("quick"); showTabQuick();
+  $("#f-url").value=raw; $("#f-url").dispatchEvent(new Event("input"));
+  const r=parseIG(raw);
+  // IG 分享的文字若除了網址還有內容，拿來當標題
+  const extra=[p.get("text"),p.get("title")].filter(Boolean).join(" ").replace(/https?:\/\/\S+/g,"").trim();
+  if(r) $("#f-url").value=r.url;
+  if(extra) $("#f-title").value=extra.slice(0,80);
+  setTimeout(()=>$("#f-title").focus(),300);
+  return true;
+}
+function showTabQuick(){["add","list","map","more"].forEach(n=>$("#tab-"+n).style.display=n==="add"?"":"none")}
+$("#doneClose").onclick=()=>{window.close();setTimeout(()=>{showTab("add");toast("可以按手機的返回鍵回到 IG")},300)};
+$("#doneList").onclick=()=>showTab("list");
+
+loadLocal(); renderCats(); render(); handleShare();
+</script>
+</body>
+</html>
